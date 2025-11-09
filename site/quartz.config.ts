@@ -17,7 +17,7 @@ const config: QuartzConfig = {
     },
     locale: "en-US",
     name: "Proyecto UT1 · RA1 · BA",
-    baseUrl: "https://<TU_USUARIO>.github.io/RA1_BA",
+    baseUrl: "https://github.com/samu3l12/RA1",
     description: "Ingesta · Almacenamiento · Reporte",
     ignorePatterns: ["private", "templates", ".obsidian"],
     defaultDateType: "modified",
