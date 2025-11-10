@@ -2,146 +2,116 @@
 title: "Modelo oro — Ventas"
 owner: "equipo-alumno"
 periodicidad: "diaria"
-version: "1.0.0"
+version: "1.0.1"
 ---
 
-# Tablas oro
-- `clean_ventas` (línea de venta)
-- `ventas_diarias_producto` (por fecha y producto): columnas `fecha`, `id_producto`, `unidades`, `importe`, `ticket_medio`
+# Resumen
+Documento que describe la capa ORO para ventas: tablas resultantes, métricas claves (KPI), consultas SQL para obtenerlas y ejemplos de resultados extraídos del artefacto analítico generado por `run.py` (SQLite + Parquet).
 
-# KPIs
-- Ingresos netos: Σ(`importe`) = Σ(`unidades * precio_unitario`)
-- Ticket medio: `Ingresos / nº_transacciones`
-- Top productos: `id_producto` por importe
+# Tablas ORO
+- `clean_ventas` (línea de venta): filas validadas, tipadas y deduplicadas.
+- `ventas_diarias` (vista): agregación por `fecha` (ya creada como vista `ventas_diarias`).
 
-# SQL conceptual
+# Métricas (KPI)
+- Ingresos netos (periodo mostrado): Σ(`unidades * precio_unitario`) sobre `clean_ventas`.
+- Ticket medio: `Ingresos netos / nº_transacciones`.
+- Nº transacciones (líneas válidas).
+
+# Supuestos
+- Todas las cifras en EUR sin ajuste por impuestos ni inflaciones.
+- Dedupe: clave natural `(fecha, id_cliente, id_producto)`, política "último gana" basada en `_ingest_ts`.
+
+# Consultas base (SQL ejecutables)
 ```sql
--- Ventas diarias por producto
-SELECT fecha, id_producto, SUM(unidades) AS unidades, SUM(importe) AS importe,
-       SUM(importe)/COUNT(*) AS ticket_medio
+-- 1) Ingresos por día
+SELECT fecha, SUM(unidades * precio_unitario) AS importe_total, COUNT(*) AS lineas
 FROM clean_ventas
-GROUP BY fecha, id_producto;
+GROUP BY fecha;
 ```
 
-| fecha | id\_producto | unidades | importe | ticket\_medio |
-| :--- | :--- | :--- | :--- | :--- |
-| 2025-07-07 | P001 | 2 | 5800 | 5800 |
-| 2025-07-07 | P002 | 1 | 2100 | 2100 |
-| 2025-07-07 | P003 | 3 | 1260 | 1260 |
-| 2025-07-07 | P004 | 2 | 620 | 620 |
-| 2025-07-07 | P005 | 1 | 3500 | 3500 |
-| 2025-07-07 | P006 | 5 | 900 | 900 |
-| 2025-07-07 | P007 | 2 | 190 | 190 |
-| 2025-07-07 | P008 | 3 | 180 | 180 |
-| 2025-07-07 | P009 | 1 | 2800 | 2800 |
-| 2025-07-07 | P010 | 2 | 1300 | 1300 |
-| 2025-07-07 | P011 | 1 | 520 | 520 |
-| 2025-07-07 | P012 | 2 | 960 | 960 |
-| 2025-07-07 | P013 | 4 | 340 | 340 |
-| 2025-07-07 | P014 | 5 | 225 | 225 |
-| 2025-07-07 | P015 | 1 | 890 | 890 |
-| 2025-07-07 | P016 | 2 | 500 | 500 |
-| 2025-07-07 | P017 | 1 | 420 | 420 |
-| 2025-07-07 | P018 | 1 | 370 | 370 |
-| 2025-07-07 | P019 | 2 | 620 | 620 |
-| 2025-07-07 | P020 | 1 | 1250 | 1250 |
-| 2025-07-07 | P021 | 3 | 4350 | 4350 |
-| 2025-07-07 | P022 | 1 | 2100 | 2100 |
-| 2025-07-07 | P023 | 2 | 840 | 840 |
-| 2025-07-07 | P024 | 2 | 620 | 620 |
-| 2025-07-07 | P025 | 1 | 3500 | 3500 |
-| 2025-07-07 | P026 | 4 | 720 | 720 |
-| 2025-07-07 | P027 | 3 | 285 | 285 |
-| 2025-07-07 | P028 | 1 | 60 | 60 |
-| 2025-07-07 | P029 | 2 | 5600 | 5600 |
-| 2025-07-07 | P030 | 1 | 650 | 650 |
-| 2025-07-07 | P031 | 1 | 520 | 520 |
-| 2025-07-07 | P032 | 2 | 960 | 960 |
-| 2025-07-07 | P033 | 1 | 85 | 85 |
-| 2025-07-07 | P034 | 4 | 180 | 180 |
-| 2025-07-07 | P035 | 1 | 890 | 890 |
-| 2025-07-07 | P036 | 2 | 500 | 500 |
-| 2025-07-07 | P037 | 1 | 420 | 420 |
-| 2025-07-07 | P038 | 1 | 370 | 370 |
-| 2025-07-07 | P039 | 3 | 930 | 930 |
-| 2025-07-07 | P040 | 2 | 2500 | 2500 |
-| 2025-07-07 | P041 | 2 | 2900 | 2900 |
-| 2025-07-07 | P042 | 1 | 2100 | 2100 |
-| 2025-07-07 | P043 | 1 | 420 | 420 |
-| 2025-07-07 | P044 | 2 | 620 | 620 |
-| 2025-07-07 | P045 | 1 | 3500 | 3500 |
-| 2025-07-07 | P046 | 3 | 540 | 540 |
-| 2025-07-07 | P047 | 1 | 95 | 95 |
-| 2025-07-07 | P048 | 2 | 120 | 120 |
-| 2025-07-07 | P049 | 1 | 2800 | 2800 |
-| 2025-07-07 | P050 | 2 | 1300 | 1300 |
-| 2025-07-07 | P051 | 1 | 520 | 520 |
-| 2025-07-07 | P052 | 1 | 480 | 480 |
-| 2025-07-07 | P053 | 1 | 85 | 85 |
-| 2025-07-07 | P054 | 4 | 180 | 180 |
-| 2025-07-07 | P055 | 1 | 890 | 890 |
-| 2025-07-07 | P056 | 2 | 500 | 500 |
-| 2025-07-07 | P057 | 1 | 420 | 420 |
-| 2025-07-07 | P058 | 2 | 740 | 740 |
-| 2025-07-07 | P059 | 2 | 620 | 620 |
-| 2025-07-07 | P060 | 1 | 1250 | 1250 |
-| 2025-07-07 | P061 | 1 | 1450 | 1450 |
-| 2025-07-07 | P062 | 2 | 4200 | 4200 |
-| 2025-07-07 | P063 | 2 | 840 | 840 |
-| 2025-07-07 | P064 | 1 | 310 | 310 |
-| 2025-07-07 | P065 | 2 | 7000 | 7000 |
-| 2025-07-07 | P066 | 2 | 360 | 360 |
-| 2025-07-07 | P067 | 1 | 95 | 95 |
-| 2025-07-07 | P068 | 2 | 120 | 120 |
-| 2025-07-07 | P069 | 2 | 5600 | 5600 |
-| 2025-07-07 | P070 | 1 | 650 | 650 |
-| 2025-07-07 | P071 | 1 | 520 | 520 |
-| 2025-07-07 | P072 | 2 | 960 | 960 |
-| 2025-07-07 | P073 | 1 | 85 | 85 |
-| 2025-07-07 | P074 | 3 | 135 | 135 |
-| 2025-07-07 | P075 | 1 | 890 | 890 |
-| 2025-07-07 | P076 | 2 | 500 | 500 |
-| 2025-07-07 | P077 | 1 | 420 | 420 |
-| 2025-07-07 | P078 | 2 | 740 | 740 |
-| 2025-07-07 | P079 | 2 | 620 | 620 |
-| 2025-07-07 | P080 | 1 | 1250 | 1250 |
-| 2025-07-07 | P081 | 2 | 2900 | 2900 |
-| 2025-07-07 | P082 | 1 | 2100 | 2100 |
-| 2025-07-07 | P083 | 2 | 840 | 840 |
-| 2025-07-07 | P084 | 2 | 620 | 620 |
-| 2025-07-07 | P085 | 1 | 3500 | 3500 |
-| 2025-07-07 | P086 | 2 | 360 | 360 |
-| 2025-07-07 | P087 | 2 | 190 | 190 |
-| 2025-07-07 | P088 | 1 | 60 | 60 |
-| 2025-07-07 | P089 | 1 | 2800 | 2800 |
-| 2025-07-07 | P090 | 2 | 1300 | 1300 |
-| 2025-07-07 | P091 | 2 | 1040 | 1040 |
-| 2025-07-07 | P092 | 1 | 480 | 480 |
-| 2025-07-07 | P093 | 2 | 170 | 170 |
-| 2025-07-07 | P094 | 4 | 180 | 180 |
-| 2025-07-07 | P095 | 1 | 890 | 890 |
-| 2025-07-07 | P096 | 2 | 500 | 500 |
-| 2025-07-07 | P097 | 1 | 420 | 420 |
-| 2025-07-07 | P098 | 1 | 370 | 370 |
-| 2025-07-07 | P099 | 3 | 930 | 930 |
-| 2025-07-07 | P100 | 1 | 1250 | 1250 |
-| 2025-07-07 | P101 | 2 | 2900 | 2900 |
-| 2025-07-07 | P102 | 1 | 2100 | 2100 |
-| 2025-07-07 | P103 | 2 | 840 | 840 |
-| 2025-07-07 | P104 | 2 | 620 | 620 |
-| 2025-07-07 | P105 | 1 | 3500 | 3500 |
-| 2025-07-07 | P106 | 3 | 540 | 540 |
-| 2025-07-07 | P107 | 1 | 95 | 95 |
-| 2025-07-07 | P108 | 2 | 120 | 120 |
-| 2025-07-07 | P109 | 1 | 2800 | 2800 |
-| 2025-07-07 | P110 | 2 | 1300 | 1300 |
-| 2025-07-07 | P111 | 1 | 520 | 520 |
-| 2025-07-07 | P112 | 1 | 480 | 480 |
-| 2025-07-07 | P113 | 1 | 85 | 85 |
-| 2025-07-07 | P114 | 4 | 180 | 180 |
-| 2025-07-07 | P115 | 1 | 890 | 890 |
-| 2025-07-07 | P116 | 2 | 500 | 500 |
-| 2025-07-07 | P117 | 1 | 420 | 420 |
-| 2025-07-07 | P118 | 2 | 740 | 740 |
-| 2025-07-07 | P119 | 2 | 620 | 620 |
-| 2025-07-07 | P120 | 1 | 1250 | 1250 |
+```sql
+-- 2) Ticket medio por día
+SELECT fecha, (SUM(unidades * precio_unitario) / COUNT(*)) AS ticket_medio
+FROM clean_ventas
+GROUP BY fecha;
+```
+
+```sql
+-- 3) Top productos (importe total)
+SELECT id_producto, SUM(unidades * precio_unitario) AS importe
+FROM clean_ventas
+GROUP BY id_producto
+ORDER BY importe DESC
+LIMIT 10;
+```
+
+```sql
+-- 4) Calidad rápida: conteos clean / quarantine / total
+SELECT
+  (SELECT COUNT(*) FROM clean_ventas) AS filas_plata,
+  (SELECT COUNT(*) FROM quarantine_ventas) AS filas_quarantine,
+  ((SELECT COUNT(*) FROM clean_ventas) + (SELECT COUNT(*) FROM quarantine_ventas)) AS total_procesadas;
+```
+
+# (análisis Pareto): ¿Cuál es el número mínimo de productos que explica el 80% de los ingresos y cuáles son?
+```sql
+WITH prod AS (
+  SELECT id_producto, SUM(unidades * precio_unitario) AS importe
+  FROM clean_ventas
+  GROUP BY id_producto
+), ranked AS (
+  SELECT
+    id_producto,
+    importe,
+    SUM(importe) OVER (ORDER BY importe DESC) AS cum_importe,
+    SUM(importe) OVER () AS total_importe,
+    ROW_NUMBER() OVER (ORDER BY importe DESC) AS k
+  FROM prod
+)
+SELECT k AS productos_necesarios,
+       ROUND(100.0 * cum_importe / total_importe, 2) AS pct_acumulado,
+       (SELECT GROUP_CONCAT(id_producto)
+        FROM ranked r2
+        WHERE r2.k <= ranked.k) AS productos
+FROM ranked
+WHERE cum_importe >= 0.80 * total_importe
+ORDER BY k
+LIMIT 1;
+```
+
+# Ejemplo de resultados (snapshot actual)
+- Ingresos totales: 24745.00
+- Ticket medio: 1237.25
+- Líneas clean: 20
+- Filas quarantine: 6
+- Top producto: P001
+
+
+# Ejemplos (2 filas) de artefactos Parquet
+
+## Parquet: clean_ventas (ejemplo — 2 filas)
+| fecha | id_cliente | id_producto | unidades | precio_unitario | importe | _ingest_ts |
+|---|---|---|---:|---:|---:|---|
+| 2025-07-07 | C001 | P001 | 2 | 2900 | 5800.00 | 2025-11-10T11:36:06.350870+00:00 |
+| 2025-07-07 | C088 | P088 | 1 | 60 | 60.00 | 2025-11-10T11:36:06.350870+00:00 |
+
+## Parquet: productos (ejemplo — 2 filas)
+| fecha_entrada | id_producto | nombre_producto | precio_unitario | categoria |
+|---|---|---|---:|---|
+| 2025-01-03 | P001 | Lavadora Samsung 9kg | 1450 | electrodomestico |
+| 2025-01-05 | P002 | Refrigerador LG 300L | 2100 | electrodomestico |
+
+## Parquet: clientes (ejemplo — 2 filas)
+| fecha | id_cliente | nombre | apellido |
+|---|---|---|---|
+| 2025-01-03 | C001 | Arturo | Navarro |
+| 2025-01-04 | C002 | María | López |
+
+## Parquet / Vista ORO: ventas_diarias (ejemplo)
+| fecha | importe_total | lineas |
+|---|---:|---:|
+| 2025-07-07 | 139050 | 120 |
+
+<!--
+Presentador: muestra estas dos filas por artefacto y explica que son ejemplos extraídos del Parquet/SQLite que genera `run.py`. Si necesitas más filas, en el notebook puedes cargar el Parquet y usar df.head(N).
+-->

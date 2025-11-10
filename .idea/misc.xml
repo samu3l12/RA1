@@ -3,7 +3,7 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.13 (BDA_Proyecto_UT1_RA1-main)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.13" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="BDA_Proyecto_UT1_RA1-main" project-jdk-type="Python SDK" />
   <component name="PyCharmDSProjectLayout">
     <option name="id" value="JupyterRightHiddenStructureLayout" />
   </component>

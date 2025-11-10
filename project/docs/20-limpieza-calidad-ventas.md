@@ -1,62 +1,35 @@
-# Reglas de limpieza y calidad — Ventas (adaptado)
+# Reglas de limpieza y calidad — Ventas
+
+Este documento describe cómo se limpian y validan las ventas antes de usarlas para análisis.
 
 ## Tipos y formatos
-- `fecha`: ISO (`YYYY-MM-DD` o `TIMESTAMP` UTC)
-- `unidades`: entero ≥ 0
-- `precio_unitario`: decimal ≥ 0 (guardar en Parquet y en SQLite como NUMERIC/REAL)
+- fecha en ISO (YYYY-MM-DD) o timestamp UTC normalizado a fecha.
+- unidades como número entero mayor o igual que 0.
+- precio_unitario como decimal mayor o igual que 0 (se evita usar float para dinero).
 
 ## Campos obligatorios
-- `fecha`, `id_cliente`, `id_producto`, `unidades`, `precio_unitario`
-- Filas inválidas → `project/output/quality/ventas_quarantine.csv`
+- fecha, id_cliente, id_producto, unidades, precio_unitario.
+- Las filas que no los cumplen se envían a cuarentena con un motivo concreto.
 
-## Validaciones específicas
-- `unidades >= 0` y entero
-- `precio_unitario >= 0`
-- `id_producto` debe coincidir con `^P[0-9]+$` (si el catálogo tiene otro formato, adaptarlo)
+## Validaciones
+- unidades >= 0 y de tipo numérico.
+- precio_unitario >= 0 y convertible a decimal.
+- id_producto coincide con el patrón ^P[0-9]+$.
 
-## Dedupe
-- Clave natural: `(fecha, id_cliente, id_producto)`
-- Política: último gana por `_ingest_ts` + orden en fichero
+## Deduplicación
+- Clave natural: (fecha, id_cliente, id_producto).
+- Política: “último gana” ordenando por _ingest_ts.
 
-## Estandarización
-- Trim, normalización de tildes, mayúsculas en ids
+## Estandarización de texto
+- Recorte de espacios y mayúsculas en identificadores (id_cliente, id_producto).
 
 ## Trazabilidad
-- Mantener `_source_file`, `_ingest_ts`, `_batch_id`, `_row_id`
+- En todas las capas se mantienen _source_file, _ingest_ts y _batch_id para poder rastrear qué lote y qué fichero originó cada fila.
 
 ## QA rápida
-- % filas a quarantine
-- Conteos por día vs. esperado
+- Porcentaje de filas que van a cuarentena y conteos por día para comprobar que el volumen procesado coincide con lo esperado.
 
-## Nota sobre la implementación actual (`run.py`)
-- `run.py` (en `project/ingest/`) ahora lee de forma explícita:
-  - `project/data/productos.csv`
-  - `project/data/clientes.csv`
-  - `project/data/drops/ventas.csv` (archivo principal de ventas)
-- Salidas:
-  - Quarantine: `project/output/quality/ventas_quarantine.csv`
-  - Ventas limpias (parquet): `project/output/parquet/clean_ventas.parquet` (requiere `pyarrow` o `fastparquet` en el entorno)
-  - SQLite: `project/output/ut1.db` con tablas `raw_ventas` y las vistas/upserts definidos en `project/sql/`.
-- Nota práctica: si tu entorno no tiene `pyarrow`, puedo ajustar `run.py` para escribir CSV en vez de Parquet; dime si prefieres eso.
-
-- Nota importante sobre validación de catálogo:
-  - La implementación actual valida el formato de `id_producto` (regex `^P[0-9]+$`) pero NO comprueba si el `id_producto` o `id_cliente` existen realmente en los ficheros de catálogo (`productos.csv`, `clientes.csv`).
-  - Si deseas que las ventas referencien sólo productos/clientes existentes, puedo añadir esa validación para mover a `quarantine` las filas con referencias inexistentes en catálogo.
-
-## Persistencia en SQLite (ut1.db)
-
-- El pipeline además de guardar Parquet, persiste datos en una base SQLite ubicada en `project/output/ut1.db`.
-- Esquema usado: `project/sql/00_schema.sql` (crea `raw_ventas`, `clean_ventas`, `quarantine_ventas`).
-- Qué se guarda:
-  - `raw_ventas`: volcado de las filas tal como llegaron del CSV con trazabilidad (`_ingest_ts`, `_source_file`, `_batch_id`).
-  - `clean_ventas`: filas validadas (clave natural: `fecha,id_cliente,id_producto`) insertadas/actualizadas mediante UPSERT (`project/sql/10_upserts.sql`).
-  - Nota: la cuarentena se guarda por defecto en CSV (`project/output/quality/ventas_quarantine.csv`); no se vuelca automáticamente en `quarantine_ventas` a menos que se active explícitamente.
-- Columna `importe`: el cálculo se realiza con `Decimal` en memoria y, para preservar precisión, se guarda en la BD como `TEXT` (cadena) y en Parquet como string; en SQL se puede convertir a número si se desea.
-- Verificación rápida (desde la raíz del repo):
-
-```cmd
-py -3 project\ingest\run.py
-py -3 project\ingest\check_db.py
-```
-
-(esto creará/actualizará `project/output/ut1.db` y mostrará tablas y recuentos).
+## Persistencia
+- Plata (clean): se guarda en SQLite (tabla clean_ventas) y en Parquet (project/output/parquet/clean_ventas.parquet).
+- Bronce (raw): se guarda en SQLite (tabla raw_ventas) con las columnas originales y la trazabilidad.
+- Cuarentena: se guarda como CSV en project/output/quality/ventas_quarantine.csv y también en SQLite (quarantine_ventas) con el motivo y la fila original serializada.

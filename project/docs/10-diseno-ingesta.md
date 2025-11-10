@@ -54,7 +54,5 @@ py -3 project\ingest\check_db.py
 - Si se requiere validar que `id_producto`/`id_cliente` existan en catálogo, añadir la comprobación en la fase de limpieza y mover las filas no coincidentes a `quarantine`.
 - Para grandes volúmenes, cambiar estrategia de upserts por batch o tabla temporal + MERGE para mejorar rendimiento.
 
-## Contacto / Dueños
-- Responsable (entregable): Estudiante / autor del repo.
-- Soporte técnico: revisar `project/ingest/run.py` y `project/sql/` para entender la implementación.
+
 
