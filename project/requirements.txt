@@ -1,3 +1,7 @@
+# Dependencias mínimas para ejecutar project/ingest/run.py
 pandas
 pyarrow
+# Motor parquet alternativo opcional (si no usas pyarrow)
+fastparquet
+# Utilidad ya presente en el proyecto (no estrictamente necesaria para run.py)
 tabulate

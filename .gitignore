@@ -1,8 +1,13 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .venv/
 .ipynb_checkpoints/
+.pytest_cache/
+*.coverage
+.coverage*
 
 # Node / Quartz
 site/node_modules/
@@ -18,4 +23,14 @@ project/*.db
 
 # OS
 .DS_Store
+Thumbs.db
 /site/content/docs.old/
+
+# IDE
+.idea/
+.vscode/
+/.vscode/
+/project/tools/clean_repo.py
+/project/tools/copy_report_to_site.py
+/project/tools/generate_expo_images.py
+/project/tools/sync_docs_to_site.py
