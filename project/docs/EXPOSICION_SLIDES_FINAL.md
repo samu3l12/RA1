@@ -1,10 +1,6 @@
-
-
----
-
 <!-- NUEVA DIAPOSITIVA: Ingesta / get_data.py (movida al principio) -->
 Diapositiva 1 — Ingesta (get_data.py)
-Ingesta y qué hace `get_data.py`
+Título: Ingesta y qué hace `get_data.py`
  En este proyecto el módulo `get_data.py` prepara el CSV de entrada para las pruebas: crea las carpetas `project/data/` y `project/data/drops/`, corrige un posible fichero mal nombrado (`project/data/ productos.csv` → `productos.csv`) y escribe el archivo `project/data/drops/ventas.csv` con un bloque de filas válidas seguido de varias filas erróneas para probar la cuarentena.
 
 Detalles exactos:
@@ -20,7 +16,7 @@ Importante — qué NO hace este script:
 Cómo ejecutarlo (comando):
 
 
-Diapositiva 1 — Fuentes en crudo
+Diapositiva 2 — Fuentes en crudo
 Título: Fuentes en crudo
 Texto para leer: Estas son nuestras fuentes en crudo: ventas, catálogo de productos y clientes. Aquí empieza todo.
 Imagen sugerida: expo_1_ventas.png / expo_1_productos.png / expo_1_clientes.png
@@ -60,7 +56,7 @@ Notas: muestra las 6 filas y el nombre de la variable `ventas_raw` en la diaposi
 
 ---
 
-Diapositiva 2 — Trazabilidad
+Diapositiva 3 — Trazabilidad
 Título: Trazabilidad
 Texto para leer: Añadimos trazabilidad para saber cuándo y en qué lote se procesó cada fila; esto facilita reproducir ejecuciones y auditar cambios.
 Imagen sugerida: expo_2_trace.png
@@ -78,7 +74,7 @@ Notas: resalta `_ingest_ts` y `_source_file` en la diapositiva.
 
 ---
 
-Diapositiva 3 — Validaciones y cuarentena
+Diapositiva 4 — Validaciones y cuarentena
 Título: Validaciones y cuarentena
 Texto para leer: Aplicamos reglas: fecha ISO, unidades >= 0, precio_unitario >= 0 y id_producto con patrón P[0-9]+. Las filas que no cumplen van a 'quarantine' con el motivo registrado.
 Imagen sugerida: expo_3_quarantine.png
@@ -96,7 +92,7 @@ Notas: explica cada razón brevemente en la exposición.
 
 ---
 
-Diapositiva 4 — Limpieza y deduplicación
+Diapositiva 5 — Limpieza y deduplicación
 Título: Limpieza y deduplicación
 Texto para leer: Desduplicamos por la clave natural (fecha, id_cliente, id_producto). Política: 'último gana' según `_ingest_ts`. Calculamos `importe` = `unidades` × `precio_unitario`.
 Imagen sugerida: expo_4_clean.png
@@ -116,7 +112,7 @@ Notas: pone un recuadro en la diapositiva con métricas (filas iniciales → lim
 
 ---
 
-Diapositiva 5 — Persistencia y KPIs
+Diapositiva 6 — Persistencia y KPIs
 Título: Persistencia y KPIs
 Texto para leer: Guardamos los datos limpios en Parquet y SQLite; desde ahí generamos vistas que alimentan los KPI: ingresos, ticket medio y unidades vendidas.
 Imagen sugerida: expo_5_kpis.png
@@ -134,7 +130,7 @@ Notas: incluye en la diapositiva el path del Parquet y del .db para que el tribu
 
 <!-- NUEVA: capa ORO persistida -->
 
-Diapositiva 6 — Capa ORO (persistida)
+Diapositiva 7 — Capa ORO (persistida)
 Título: Capa ORO — ventas diarias por producto
 Texto para leer: Además de la vista, ahora persistimos la tabla ORO `ventas_diarias_producto` para análisis y entrega; está disponible como tabla en SQLite y como Parquet para consumo analítico.
 Rutas: `project/output/ut1.db` → tabla `ventas_diarias_producto`; `project/output/parquet/ventas_diarias_producto.parquet` (o CSV si no hay pyarrow).
@@ -152,7 +148,7 @@ Notas: muestra dónde consultar la tabla ORO y cómo usarla para generar gráfic
 
 ---
 
-Diapositiva final — Cierre y próximos pasos
+Diapositiva 8 — Cierre y próximos pasos
 Título: Cierre y próximos pasos
 Texto para leer: Resumen: pasamos de raw → clean → persistencia. Recomendación: automatizar tests de calidad y activar alertas si el % de quarantine sube por encima de un umbral aceptable.
 Imagen sugerida: expo_final_acciones.png
