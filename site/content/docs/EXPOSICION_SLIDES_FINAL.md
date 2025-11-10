@@ -58,7 +58,7 @@ Clientes:
 | 2025-01-05  | Carlos  | García    | C003       |
 | 2025-01-06  | Lucía   | Sánchez   | C004       |
 
-Notas: muestra las 6 filas y el nombre de la variable `ventas_raw` en la diapositiva para referencia.
+
 
 ---
 
@@ -76,7 +76,7 @@ Imagen sugerida: expo_2_trace.png
 | 2025-07-07  | C003       | P003        | ventas.csv   | 2025-11-10T11:36:06+00:00  | batch-demo |
 | 2025-07-07  | C004       | P004        | ventas.csv   | 2025-11-10T11:36:06+00:00  | batch-demo |
 
-Notas: resalta `_ingest_ts` y `_source_file` en la diapositiva.
+Notas: resaltar `_ingest_ts` y `_source_file` en la diapositiva.
 
 ---
 
