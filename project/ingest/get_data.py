@@ -55,3 +55,4 @@ not-a-date,C025,P025,1,300
 file_path = DROPS / "ventas.csv"
 file_path.write_text(csv, encoding='utf-8')
 print('Generado:', file_path)
+

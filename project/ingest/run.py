@@ -153,6 +153,25 @@ if not ventas_raw.empty:
     df_raw_sql = df_raw_sql[cols_raw]
     df_raw_sql.to_sql('raw_ventas', con, if_exists='append', index=False)
 
+# Persistir filas de quarantine en la tabla quarantine_ventas
+if not quarantine.empty:
+    # eliminar filas previas con el mismo batch_id (evitar duplicados en re-ejecuciones)
+    batch_vals = quarantine.get('_batch_id')
+    batch_id_val = None
+    if batch_vals is not None and len(batch_vals) > 0:
+        batch_id_val = str(batch_vals.iloc[0])
+    if batch_id_val:
+        con.execute("DELETE FROM quarantine_ventas WHERE _batch_id = ?", (batch_id_val,))
+    # columnas a incluir en _row (guardamos un dict como texto para trazabilidad)
+    row_cols = ['fecha','id_cliente','id_producto','unidades','precio_unitario']
+    insert_q = "INSERT INTO quarantine_ventas(_reason,_row,_ingest_ts,_source_file,_batch_id) VALUES (?,?,?,?,?)"
+    for _, r in quarantine.iterrows():
+        reason = r.get('motivo', '')
+        # crear representación simple de la fila original
+        row_dict = {c: (None if pd.isna(r.get(c)) else r.get(c)) for c in row_cols}
+        con.execute(insert_q, (reason, str(row_dict), r.get('_ingest_ts'), r.get('_source_file'), r.get('_batch_id')))
+    con.commit()
+
 # Upserts para clean_ventas usando el SQL proporcionado
 if not clean.empty:
     upsert_sql = (Path(__file__).resolve().parents[1] / 'sql' / '10_upserts.sql').read_text(encoding='utf-8')
@@ -187,8 +206,38 @@ if not clean.empty:
 # Crear vistas
 views_sql = (Path(__file__).resolve().parents[1] / 'sql' / '20_views.sql').read_text(encoding='utf-8')
 con.executescript(views_sql)
+
+# ----- CAPA ORO: generar/agregar ventas_diarias_producto (persistida) -----
+# Creamos/actualizamos una tabla física con agregados por fecha + producto
+create_oro_sql = """
+DROP TABLE IF EXISTS ventas_diarias_producto;
+CREATE TABLE ventas_diarias_producto AS
+SELECT fecha,
+       id_producto,
+       SUM(unidades * precio_unitario) AS importe_total,
+       SUM(unidades) AS unidades_total,
+       ROUND(SUM(unidades * precio_unitario) / NULLIF(SUM(unidades),0), 2) AS ticket_medio
+FROM clean_ventas
+GROUP BY fecha, id_producto;
+"""
+con.executescript(create_oro_sql)
+# Volcar la tabla oro a parquet (y fallback CSV) para analítica
+try:
+    df_oro = pd.read_sql_query('SELECT * FROM ventas_diarias_producto', con)
+    # Asegurar tipos apropiados
+    df_oro['importe_total'] = pd.to_numeric(df_oro['importe_total'], errors='coerce')
+    df_oro['unidades_total'] = pd.to_numeric(df_oro['unidades_total'], errors='coerce')
+    (OUT / 'parquet').mkdir(parents=True, exist_ok=True)
+    df_oro.to_parquet(OUT / 'parquet' / 'ventas_diarias_producto.parquet', index=False)
+except Exception:
+    # fallback: guardar CSV
+    df_oro = pd.read_sql_query('SELECT * FROM ventas_diarias_producto', con)
+    df_oro.to_csv(OUT / 'parquet' / 'ventas_diarias_producto.csv', index=False)
+
+con.commit()
 con.close()
 
 # Mensaje final
 print('done -> clean:', len(clean), 'quarantine:', len(quarantine))
 print('quarantine file:', (OUT / 'quality' / 'ventas_quarantine.csv'))
+print('oro persisted: project/output/parquet/ventas_diarias_producto.parquet (or CSV) and table ventas_diarias_producto in ut1.db')

@@ -145,3 +145,11 @@ GROUP BY fecha, id_producto;
 | 2025-07-07 | P118 | 2 | 740 | 740 |
 | 2025-07-07 | P119 | 2 | 620 | 620 |
 | 2025-07-07 | P120 | 1 | 1250 | 1250 |
+
+# Nota sobre persistencia (estado actual)
+
+Este repositorio ahora genera y persiste la capa "oro" automáticamente al ejecutar el pipeline `project/ingest/run.py`.
+- Tabla SQL persistida: `ventas_diarias_producto` en `project/output/ut1.db`.
+- Archivo analítico: `project/output/parquet/ventas_diarias_producto.parquet` (fallback CSV: `project/output/parquet/ventas_diarias_producto.csv`).
+
+Estos artefactos se usan para análisis y entrega (KPIs). Puedes consultar la tabla en la base de datos SQLite o leer directamente el Parquet desde cualquier herramienta analítica.

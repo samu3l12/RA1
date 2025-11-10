@@ -1,103 +1,163 @@
-# Plantilla rellenada - Proyecto UT1
+---
+title: "Plantilla entregable — Proyecto UT1 RA1"
+tags: ["UT1","RA1","docs"]
+version: "1.0.0"
+owner: "equipo-alumno"
+status: "final"
+---
 
-1. Objetivo
------------
-Este documento describe el pipeline mínimo desarrollado para este proyecto y sirve para:
-- Explicar qué problema resuelve: convertir los CSV de entrada (productos, clientes y drops/ventas) en un Mini‑DWH usable para análisis (dim_productos + fact_ventas) y reportes de KPI.
-- Soportar decisiones operacionales y de calidad: justificar las reglas de limpieza, la política de deduplicación y la estrategia de persistencia (parquet + SQLite).
-- Servir como evidencia reproducible para la entrega y para auditoría de datos (trazabilidad).
+# 1. Objetivo
+Este documento describe el trabajo realizado para la ingestión, limpieza y modelado mínimo de ventas del proyecto.
+Propósito principal: transformar los CSV de entrada en una tabla "plata" (datos tipados y deduplicados) y generar artefactos analíticos reproducibles para obtener KPI básicos. El objetivo es demostrar trazabilidad, calidad de datos y un flujo ETL sencillo que pueda extenderse a una capa "oro" (agregados para análisis).
 
-2. Alcance
-----------
+# 2. Alcance
 Cubre:
-- Ingesta batch de los CSV en `project/data` y `project/data/drops/ventas.csv`.
-- Limpieza: coerción de tipos, validaciones básicas, separación en `quarantine` y `clean`.
-- Modelado mínimo: generación de `dim_productos` y tabla de hechos `fact_ventas` (vía upserts en SQLite y parquet para analítica).
-- Salida: parquet listo para análisis, base SQLite con vistas y un `reporte.md` resumen.
+- Ingesta batch de CSV en `project/data/drops/` (ventas) junto con los CSV de catálogo (`project/data/productos.csv`) y clientes (`project/data/clientes.csv`).
+- Limpieza: coerción de tipos, validaciones, quarantena (filas inválidas), deduplicación (clave natural: fecha, id_cliente, id_producto).
+- Persistencia: Parquet para analítica (`project/output/parquet/clean_ventas.parquet`), SQLite (`project/output/ut1.db`) con tablas `raw_ventas`, `clean_ventas`, `quarantine_ventas` y vistas resumidas.
+- Reporte mínimo: `project/output/reporte.md` y vistas SQL para KPI.
 
-No cubre:
-- Integración con sistemas externos (APIs, colas), ni pipelines en streaming.
-- Gobernanza avanzada (versionado de esquemas, control de accesos) ni orquestación en producción.
+No cubre (fuera de este entregable):
+- Pipelines en tiempo real/micro-batch.
+- Enriquecimientos externos (pricing dinámico, inventarios en tiempo real).
 
-3. Decisiones / Reglas
-----------------------
-- Estrategia de ingestión: batch (archivo único `project/data/drops/ventas.csv`); idempotencia conseguida mediante upserts a la base SQLite y dedupe local por `_ingest_ts`.
-- Clave natural: `(fecha, id_cliente, id_producto)`.
-- Idempotencia: implementada vía deduplicación (sort + drop_duplicates keep='last' por `_ingest_ts`) y upserts SQL (`project/sql/10_upserts.sql`).
-- Validaciones de calidad implementadas:
-  - Tipos: `fecha` -> date ISO, `unidades` -> entero, `precio_unitario` -> decimal.
-  - Nulos: campos obligatorios (`fecha`, `id_cliente`, `id_producto`, `unidades`, `precio_unitario`) → filas inválidas a `ventas_quarantine.csv`.
-  - Rangos: `unidades >= 0`, `precio_unitario >= 0`.
-  - Dominios: `id_producto` recomendado con patrón `^P[0-9]+$` (se puede añadir validación estricta si se desea).
-  - Nota: la implementación actual valida el formato de `id_producto`/`id_cliente` pero NO verifica que esos ids existan en los ficheros de catálogo (`productos.csv`, `clientes.csv`). Si se desea, se puede añadir una validación adicional que mueva a `quarantine` las ventas con referencias inexistentes en los catálogos.
-- Estandarización: trim de texto y normalización (tildes) para campos de catálogo; códigos en mayúsculas.
-- Trazabilidad: mantener `_source_file`, `_ingest_ts`, `_batch_id` en `raw_ventas`.
+# 3. Decisiones / Reglas
+- Estrategia de ingestión: batch, ejecución manual/por script (`py -3 project/ingest/run.py`).
+- Clave natural: `(fecha, id_cliente, id_producto)`; política: "último gana" según `_ingest_ts`.
+- Idempotencia: se usa `_batch_id` para identificar lote; antes de insertar en `quarantine_ventas` se borran filas del mismo `_batch_id` para evitar duplicados en re-ejecuciones.
+- Validaciones de calidad (reglas principales):
+  - `fecha` debe parsearse como fecha ISO (YYYY-MM-DD)
+  - `unidades` debe ser entero o numérico ≥ 0
+  - `precio_unitario` debe convertirse a Decimal ≥ 0
+  - `id_producto` debe cumplir el patrón `^P[0-9]+$`
+  - Campos obligatorios: `fecha`, `id_cliente`, `id_producto`, `unidades`, `precio_unitario`
+- Tratamiento de filas inválidas: van a `quarantine_ventas` (CSV: `project/output/quality/ventas_quarantine.csv`) con la columna `_reason` que describe la causa.
 
-## Persistencia en SQLite (ut1.db)
+# 4. Procedimiento / Pasos (cómo reproducir)
+Requisitos:
+- Python 3.8+ con pandas, pyarrow (opcional para parquet), sqlite3 (incluido en Python).
+- Ejecutar desde la raíz del repositorio.
 
-- El pipeline persiste también los datos limpios en `project/output/ut1.db`.
-- Esquema y scripts relevantes: `project/sql/00_schema.sql` (esquema), `project/sql/10_upserts.sql` (upserts), `project/sql/20_views.sql` (vistas).
-- Detalles:
-  - `raw_ventas`: volcado del CSV con trazabilidad.
-  - `clean_ventas`: filas validadas insertadas/actualizadas vía UPSERT; clave primaria `(fecha,id_cliente,id_producto)`.
-  - `importe` se calcula con Decimal y se guarda en la BD como `TEXT` (cadena) para preservar precisión; en Parquet se guarda también como string.
-  - `ventas_quarantine.csv` contiene las filas en cuarentena (motivo); por defecto no se vuelca en la BD.
+Comandos principales:
 
-4. Procedimiento / Pasos (reproducible)
---------------------------------------
-Requisitos mínimos: Python 3, pandas, sqlite3; `pyarrow` o `fastparquet` sólo si quieres parquet (opcional; el script puede adaptarse a CSV).
-
-Pasos para reproducir desde la raíz del repositorio:
-
-1) Ejecutar el pipeline de ingestión/limpieza:
+1) Ejecutar el pipeline completo (ingesta → limpieza → persistencia):
 
 ```bash
 py -3 project\ingest\run.py
 ```
 
-2) Comprobar outputs generados en `project/output/`:
-- Parquet (ventas limpias): `project/output/parquet/clean_ventas.parquet`
-- CSV de cuarentena: `project/output/quality/ventas_quarantine.csv`
-- Base SQLite con vistas: `project/output/ut1.db`
-- Reporte resumen: `project/output/reporte.md`
+2) Consultas rápidas en la DB SQLite (ejecutar con `sqlite3` o desde Python):
 
-3) Reproducir consultas de ejemplo (desde SQLite):
-- Abrir `project/output/ut1.db` con DB Browser o sqlite3 y ejecutar las vistas `ventas_diarias` o queries de ejemplo en `project/sql/20_views.sql`.
+```sql
+-- Listar tablas
+SELECT name, type FROM sqlite_master WHERE type IN ('table','view') ORDER BY name;
 
-5. Evidencias
--------------
-Incluir en la entrega (sugerido):
-- `project/output/parquet/clean_ventas.parquet` (o su export CSV) como evidencia de la capa plata/oro.
-- `project/output/quality/ventas_quarantine.csv` con ejemplos de filas inválidas y motivo.
-- `project/output/ut1.db` con tablas `raw_ventas` y `clean_ventas` (o vistas equivalentes).
-- `project/output/reporte.md` (resumen con KPI) y capturas de consultas SQL sobre `ut1.db`.
+-- Ver primeras filas clean_ventas
+SELECT * FROM clean_ventas LIMIT 20;
 
-Fragmentos útiles (ejemplos a incluir en el anexo):
-- Count de filas procesadas: SELECT COUNT(*) FROM raw_ventas;
-- Count de filas clean: SELECT COUNT(*) FROM fact_ventas; (o vista equivalente)
-- Top productos: SQL mostrado en `project/docs/30-modelado-oro-ventas.md`.
+-- Ver quarantine
+SELECT _reason,_row,_ingest_ts FROM quarantine_ventas ORDER BY _ingest_ts DESC LIMIT 50;
+```
 
-6. Resultados (KPI)
--------------------
-KPIs calculados por el pipeline y contenidos en `reporte.md`:
-- Ingresos totales: Σ(unidades * precio_unitario) — archivo: `project/output/reporte.md`.
-- Transacciones / líneas procesadas: número de filas en `clean`.
-- Ticket medio: ingresos totales / nº transacciones.
+3) Rutas de salida (relevantes):
+- Parquet limpio: `project/output/parquet/clean_ventas.parquet` (fallback CSV `project/output/parquet/clean_ventas.csv` si no hay pyarrow). 
+- SQLite: `project/output/ut1.db` (tablas: `raw_ventas`, `clean_ventas`, `quarantine_ventas`; vistas: `ventas_diarias`).
+- CSV de quarantine: `project/output/quality/ventas_quarantine.csv`.
+- Reporte: `project/output/reporte.md`.
 
-En la entrega final se incluirán valores numéricos extraídos del `clean_ventas.parquet` y tablas por día / por categoría (si hay dimensión `categoria` en `productos.csv`).
+# 5. Evidencias (qué entregar como prueba)
+- Fragmentos de `clean_ventas` (head) y `quarantine_ventas` (ejemplos con motivos).
+- Parquet `clean_ventas.parquet` y DB `ut1.db` en `project/output/`.
+- SQL ejecutadas / vistas generadas (archivo `project/sql/20_views.sql` y `project/sql/10_upserts.sql`).
+- Reporte Markdown generado: `project/output/reporte.md`.
 
-7. Lecciones aprendidas
------------------------
-- Qué salió bien:
-  - Separación clara entre raw, clean y quarantine facilita auditoría y debugging.
-  - Uso de trazabilidad (`_ingest_ts`, `_source_file`) permite decidir política de "último gana".
-- Qué mejorar / cambiar en producción:
-  - Usar Decimal para dinero en transformaciones críticas (evitar float) y asegurar exactitud en base de datos.
-  - Añadir pruebas automáticas (unitarias) sobre las validaciones y on-boarding de nuevos ficheros.
-  - Añadir un motor de orquestación y versiones de datos (p. ej. Airflow + control de versiones de esquemas).
+# 6. Resultados / KPI (salida real del run)
+Resumen numérico de la ejecución que tienes actualmente:
+- Filas ingestadas: 127
+- Filas en `clean_ventas` (plata): 120
+- Filas en `quarantine_ventas`: 7
+- Importe total (vista `ventas_diarias`): 139050 (para la fecha 2025-07-07)
 
-8. Próximos pasos (acciones y dueños)
-------------------------------------
-- Estudiante (tú): revisar `project/docs/PLANTILLA_FILLED.md`, completar `99-lecciones-aprendidas.md` con notas reales del trabajo y preparar la demo de 5 min usando `EXPOSICION_NOTAS.md`.
-- Entrega: subir `project/output/reporte.md`, `clean_ventas.parquet` (o CSV) y `ut1.db` al repositorio de entrega.
-- Opcional (mejora técnica): migrar almacenamiento analítico a Parquet particionado por `fecha` y agregar validación regex para `id_producto` y `id_cliente`.
+Porcentaje de filas en cuarentena ≈ 5.5%.
+
+Top productos por importe (extracto):
+- P065: 7000
+- P001: 5800
+- P069: 5600
+- P029: 5600
+- P021: 4350
+(Ver `project/output/ut1.db` para el listado completo: consulta `SELECT id_producto, SUM(unidades*precio_unitario) AS importe_total FROM clean_ventas GROUP BY id_producto ORDER BY importe_total DESC LIMIT 20;`)
+
+# Por qué el pipeline llegó hasta "plata" y no hasta "oro"
+- Definiciones (capas):
+  - Bronce: raw (datos tal cual se ingestan) → `raw_ventas`.
+  - Plata: datos limpiados, tipados, deduplicados → `clean_ventas` (persistidos en Parquet y SQLite).
+  - Oro: agregados y modelos listos para consumo analítico (ej.: `ventas_diarias_producto`, `ventas_por_categoria`) — normalmente se construyen a partir de `plata`.
+
+Estado actual:
+- El pipeline implementado ya produce `raw_ventas`, `clean_ventas` y una vista `ventas_diarias` (ejemplo de agregado por fecha). Esto cubre parte de la capa "oro" en modo vista.
+- No se creó una tabla/permanente "oro" (parquet o tabla SQL) con todas las agregaciones de producto-dia; se dejó la agregación como vista para simplificar reproducibilidad y evitar duplicar datos.
+
+Razón y recomendaciones:
+- Decisión consciente: mantener la capa oro como vista permite recalcular los agregados sin duplicar almacenamiento. Para informes puntuales eso es suficiente.
+- Si quieres entregar una capa "oro" persistida (recomendado para escalado o rendimiento): generar y persistir `ventas_diarias_producto` como Parquet y tabla SQL. Ejemplo SQL para generar oro:
+
+```sql
+-- Agregado oro: ventas diarias por producto
+CREATE TABLE IF NOT EXISTS ventas_diarias_producto AS
+SELECT fecha,
+       id_producto,
+       SUM(unidades * precio_unitario) AS importe_total,
+       SUM(unidades) AS unidades_total,
+       ROUND(SUM(unidades * precio_unitario) / NULLIF(SUM(unidades),0),2) AS ticket_medio
+FROM clean_ventas
+GROUP BY fecha, id_producto;
+```
+
+O con pandas (para Parquet + sqlite):
+
+```python
+import pandas as pd
+from pathlib import Path
+import sqlite3
+
+p = Path('project') / 'output' / 'parquet' / 'clean_ventas.parquet'
+df = pd.read_parquet(p)
+ore = df.groupby(['fecha','id_producto'], as_index=False).agg(importe_total=('importe', 'sum'), unidades_total=('unidades','sum'))
+ore['ticket_medio'] = (ore['importe_total'] / ore['unidades_total']).round(2)
+ore.to_parquet(Path('project')/'output'/'parquet'/'ventas_diarias_producto.parquet', index=False)
+# opcional: persistir en sqlite
+con = sqlite3.connect(Path('project')/'output'/'ut1.db')
+ore.to_sql('ventas_diarias_producto', con, if_exists='replace', index=False)
+con.close()
+```
+
+# 7. Lecciones aprendidas (breve)
+- Añadir trazabilidad mínima (`_source_file`, `_ingest_ts`, `_batch_id`) es clave para idempotencia y auditoría.  
+- Guardar `importe` como texto (Decimal→string) preserva precisión al almacenar en SQLite/CSV; para análisis numérico reconvertir a Decimal/float con cuidado.  
+- Mantener la capa oro como vista acelera iteración; persistirla es necesario si la carga/consulta crece.
+
+# 8. Próximos pasos (acciones y dueños)
+- Crear la tabla/parquet "oro" `ventas_diarias_producto` (acción: Equipo; responsable: alumno X).  
+- Añadir tests unitarios/QA automáticos que controlen el % de filas en cuarentena por lote (acción: Equipo; responsable: alumno Y).  
+- Mejorar el storage de `_row` en `quarantine_ventas` usando JSON (acción: Equipo; responsable: alumno Z).
+
+
+---
+
+Annex: consultas rápidas (copiar/pegar en sqlite3)
+
+```sql
+-- Conteos
+SELECT (SELECT COUNT(*) FROM clean_ventas) AS filas_plata, (SELECT COUNT(*) FROM quarantine_ventas) AS filas_quarantine;
+
+-- Top productos
+SELECT id_producto, SUM(unidades * precio_unitario) AS importe_total
+FROM clean_ventas
+GROUP BY id_producto
+ORDER BY importe_total DESC
+LIMIT 20;
+
+-- Ventas diarias (vista)
+SELECT * FROM ventas_diarias ORDER BY fecha DESC LIMIT 50;
+```

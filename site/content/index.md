@@ -15,5 +15,5 @@ Indice de documentos principales del proyecto (para publicar en Quartz):
 - [20 - Limpieza y calidad (ventas)](./docs/20-limpieza-calidad-ventas.md)
 - [30 - Modelado oro (ventas)](./docs/30-modelado-oro-ventas.md)
 - [40 - Plantilla de reporte](./docs/40-reporte-plantilla-ventas.md)
-- [Plantilla rellenada (entregable)](./docs/PLANTILLA_FILLED.md)
-- [Notas para exposición](./docs/EXPOSICION_NOTAS.md)
+- [Plantilla rellenada (entregable)](./docs/PLANTILLA.md)
+- [Notas para exposición](docs/EXPOSICION_SLIDES_FINAL.md)
