@@ -1,10 +1,6 @@
-
-
----
-
 <!-- NUEVA DIAPOSITIVA: Ingesta / get_data.py (movida al principio) -->
 Diapositiva 1 — Ingesta (get_data.py)
-Ingesta y qué hace `get_data.py`
+Título: Ingesta y qué hace `get_data.py`
  En este proyecto el módulo `get_data.py` prepara el CSV de entrada para las pruebas: crea las carpetas `project/data/` y `project/data/drops/`, corrige un posible fichero mal nombrado (`project/data/ productos.csv` → `productos.csv`) y escribe el archivo `project/data/drops/ventas.csv` con un bloque de filas válidas seguido de varias filas erróneas para probar la cuarentena.
 
 Detalles exactos:
@@ -19,6 +15,12 @@ Importante — qué NO hace este script:
 
 Cómo ejecutarlo (comando):
 
+```bash
+py -3 project\ingest\get_data.py
+```
+
+Consejo práctico para la demo:
+- Muestra el contenido del CSV generado (head) para explicar por qué hay filas que caerán en `quarantine` (las líneas comentadas y las filas erróneas). Luego ejecuta `py -3 project\ingest\run.py` para demostrar la separación `clean`/`quarantine`.
 
 Diapositiva 1 — Fuentes en crudo
 Título: Fuentes en crudo
