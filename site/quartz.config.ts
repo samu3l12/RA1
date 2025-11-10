@@ -19,7 +19,7 @@ const config: QuartzConfig = {
     name: "Proyecto UT1 · RA1 · BA",
     baseUrl: "https://github.com/samu3l12/RA1",
     description: "Ingesta · Almacenamiento · Reporte",
-    ignorePatterns: ["private", "templates", ".obsidian"],
+    ignorePatterns: ["private", "templates", ".obsidian", "content/docs.old"],
     defaultDateType: "modified",
     theme: {
       fontOrigin: "googleFonts",
