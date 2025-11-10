@@ -138,9 +138,14 @@ con.close()
 - Mantener la capa oro como vista acelera iteración; persistirla es necesario si la carga/consulta crece.
 
 # 8. Próximos pasos (acciones y dueños)
-- Crear la tabla/parquet "oro" `ventas_diarias_producto` (acción: Equipo; responsable: alumno X).  
-- Añadir tests unitarios/QA automáticos que controlen el % de filas en cuarentena por lote (acción: Equipo; responsable: alumno Y).  
-- Mejorar el storage de `_row` en `quarantine_ventas` usando JSON (acción: Equipo; responsable: alumno Z).
+
+- Pasos prioritarios: comprobar que los productos mencionados en `project/data/drops/ventas.csv` realmente existen en el fichero de catálogo `project/data/productos.csv`. Si aparecen productos que no están en el catálogo, hay que decidir qué hacer (añadirlos al catálogo, asignarlos a un código genérico o mover esas filas a cuarentena para revisarlas manualmente). Responsable: equipo (alumno X).
+
+- Una vez resueltas las discrepancias del catálogo, generar y guardar la tabla de análisis (la capa "oro" `ventas_diarias_producto`) como un archivo Parquet y como tabla en la base de datos SQLite. Hacer esto sólo después de asegurar que los datos de producto están correctos para no contaminar los KPI. Responsable: equipo (alumno X).
+
+- Automatizar comprobaciones básicas de calidad: por ejemplo, un script que calcule el % de filas en cuarentena por lote y que detecte productos desconocidos cada vez que se ejecute el proceso. Esto ayuda a detectar regresiones y a dar confianza antes de publicar la capa "oro". Responsable: equipo (alumno Y).
+
+- Guardar la información original de las filas que van a cuarentena en formato fácil de leer (por ejemplo JSON) para acelerar la investigación y corrección manual. Responsable: equipo (alumno Z).
 
 
 ---
