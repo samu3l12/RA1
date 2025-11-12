@@ -6,6 +6,12 @@
       <description>Last 10 notes on BDA-UT1</description>
       <generator>Quartz -- quartz.jzhao.xyz</generator>
       <item>
+    <title>Proyecto UT1 · RA1 · Big Data Aplicado</title>
+    <link>https://https://github.com/samu3l12/RA1/</link>
+    <guid>https://https://github.com/samu3l12/RA1/</guid>
+    <description><![CDATA[ Proyecto UT1 – Ingestión, Almacenamiento y Reporte Publicación web de los resultados de la práctica. ]]></description>
+    <pubDate>Wed, 12 Nov 2025 05:36:02 GMT</pubDate>
+  </item><item>
     <title>Modelo oro — Ventas</title>
     <link>https://https://github.com/samu3l12/RA1/docs/30-modelado-oro-ventas</link>
     <guid>https://https://github.com/samu3l12/RA1/docs/30-modelado-oro-ventas</guid>
@@ -53,12 +59,6 @@
     <guid>https://https://github.com/samu3l12/RA1/docs/10-diseno-ingesta</guid>
     <description><![CDATA[ Diseño de ingestión Resumen Este documento describe cómo entran los datos en el proyecto, la frecuencia de ingestión y las garantías mínimas que aplicamos. ]]></description>
     <pubDate>Wed, 12 Nov 2025 03:18:17 GMT</pubDate>
-  </item><item>
-    <title>Proyecto UT1 · RA1 · Big Data Aplicado</title>
-    <link>https://https://github.com/samu3l12/RA1/</link>
-    <guid>https://https://github.com/samu3l12/RA1/</guid>
-    <description><![CDATA[ Proyecto UT1 – Ingestión, Almacenamiento y Reporte Publicación web de los resultados de la práctica. ]]></description>
-    <pubDate>Mon, 10 Nov 2025 14:22:30 GMT</pubDate>
   </item><item>
     <title>metodologia</title>
     <link>https://https://github.com/samu3l12/RA1/metodologia</link>
