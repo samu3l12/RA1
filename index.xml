@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+    <channel>
+      <title>BDA-UT1</title>
+      <link>https://https://github.com/samu3l12/RA1</link>
+      <description>Last 10 notes on BDA-UT1</description>
+      <generator>Quartz -- quartz.jzhao.xyz</generator>
+      <item>
+    <title>Modelo oro — Ventas</title>
+    <link>https://https://github.com/samu3l12/RA1/docs/30-modelado-oro-ventas</link>
+    <guid>https://https://github.com/samu3l12/RA1/docs/30-modelado-oro-ventas</guid>
+    <description><![CDATA[ Resumen Documento que describe la capa ORO para ventas: tablas resultantes, métricas claves (KPI), consultas SQL para obtenerlas y ejemplos de resultados extraídos del artefacto analítico generado por run.py (SQLite + Parquet). ]]></description>
+    <pubDate>Wed, 12 Nov 2025 04:57:55 GMT</pubDate>
+  </item><item>
+    <title>Plantilla entregable — Proyecto UT1 RA1</title>
+    <link>https://https://github.com/samu3l12/RA1/docs/PLANTILLA</link>
+    <guid>https://https://github.com/samu3l12/RA1/docs/PLANTILLA</guid>
+    <description><![CDATA[ 1. ]]></description>
+    <pubDate>Wed, 12 Nov 2025 04:57:55 GMT</pubDate>
+  </item><item>
+    <title>reporte</title>
+    <link>https://https://github.com/samu3l12/RA1/reportes/reporte</link>
+    <guid>https://https://github.com/samu3l12/RA1/reportes/reporte</guid>
+    <description><![CDATA[ Reporte — Ventas 1. Resumen ejecutivo Periodo: 2025-07-07 → 2025-07-07. Ingresos: 24745.00 €. Ticket medio: 1237.25 €. ]]></description>
+    <pubDate>Wed, 12 Nov 2025 04:57:55 GMT</pubDate>
+  </item><item>
+    <title>40-reporte-plantilla-ventas</title>
+    <link>https://https://github.com/samu3l12/RA1/docs/40-reporte-plantilla-ventas</link>
+    <guid>https://https://github.com/samu3l12/RA1/docs/40-reporte-plantilla-ventas</guid>
+    <description><![CDATA[ Reporte — Ventas 1. Resumen ejecutivo Periodo: {periodo_ini} → {periodo_fin}. Ingresos: {ingresos:.2f} €. Ticket medio: {ticket:.2f} €. ]]></description>
+    <pubDate>Wed, 12 Nov 2025 04:57:54 GMT</pubDate>
+  </item><item>
+    <title>20-limpieza-calidad-ventas</title>
+    <link>https://https://github.com/samu3l12/RA1/docs/20-limpieza-calidad-ventas</link>
+    <guid>https://https://github.com/samu3l12/RA1/docs/20-limpieza-calidad-ventas</guid>
+    <description><![CDATA[ Reglas de limpieza y calidad — Ventas Este documento describe cómo se limpian y validan las ventas antes de usarlas para análisis. ]]></description>
+    <pubDate>Wed, 12 Nov 2025 04:32:47 GMT</pubDate>
+  </item><item>
+    <title>99-lecciones-aprendidas</title>
+    <link>https://https://github.com/samu3l12/RA1/docs/99-lecciones-aprendidas</link>
+    <guid>https://https://github.com/samu3l12/RA1/docs/99-lecciones-aprendidas</guid>
+    <description><![CDATA[ Lecciones aprendidas Qué salió bien Separar claramente las capas (raw, clean, oro) simplificó la revisión y la trazabilidad. ]]></description>
+    <pubDate>Wed, 12 Nov 2025 04:32:47 GMT</pubDate>
+  </item><item>
+    <title>home</title>
+    <link>https://https://github.com/samu3l12/RA1/docs/home</link>
+    <guid>https://https://github.com/samu3l12/RA1/docs/home</guid>
+    <description><![CDATA[ Home - Documentación del proyecto Indice de documentos principales del proyecto (para publicar en Quartz): 10 - Diseño de ingestión 20 - Limpieza y calidad (ventas) 30 - Modelado oro (ventas) 40 - Plantilla de reporte Plantilla rellenada (entregable) Notas para exposición . ]]></description>
+    <pubDate>Wed, 12 Nov 2025 04:32:47 GMT</pubDate>
+  </item><item>
+    <title>10-diseno-ingesta</title>
+    <link>https://https://github.com/samu3l12/RA1/docs/10-diseno-ingesta</link>
+    <guid>https://https://github.com/samu3l12/RA1/docs/10-diseno-ingesta</guid>
+    <description><![CDATA[ Diseño de ingestión Resumen Este documento describe cómo entran los datos en el proyecto, la frecuencia de ingestión y las garantías mínimas que aplicamos. ]]></description>
+    <pubDate>Wed, 12 Nov 2025 03:18:17 GMT</pubDate>
+  </item><item>
+    <title>Proyecto UT1 · RA1 · Big Data Aplicado</title>
+    <link>https://https://github.com/samu3l12/RA1/</link>
+    <guid>https://https://github.com/samu3l12/RA1/</guid>
+    <description><![CDATA[ Proyecto UT1 – Ingestión, Almacenamiento y Reporte Publicación web de los resultados de la práctica. ]]></description>
+    <pubDate>Mon, 10 Nov 2025 14:22:30 GMT</pubDate>
+  </item><item>
+    <title>metodologia</title>
+    <link>https://https://github.com/samu3l12/RA1/metodologia</link>
+    <guid>https://https://github.com/samu3l12/RA1/metodologia</guid>
+    <description><![CDATA[ Metodología (bronce → plata → oro) Bronce (raw): datos tal cual + _source_file, _ingest_ts, batch_id. ]]></description>
+    <pubDate>Sun, 02 Nov 2025 19:09:15 GMT</pubDate>
+  </item>
+    </channel>
+  </rss>

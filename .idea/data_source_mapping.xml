@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="DataSourcePerFileMappings">
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/b669e20d-d860-46bf-b71e-9b4a1ff581bd/console.sql" value="b669e20d-d860-46bf-b71e-9b4a1ff581bd" />
-    <file url="file://$PROJECT_DIR$/project/docs/30-modelado-oro-ventas.md" value="b669e20d-d860-46bf-b71e-9b4a1ff581bd" />
-  </component>
-</project>
