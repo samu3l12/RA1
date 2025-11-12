@@ -9,9 +9,8 @@ __pycache__/
 *.coverage
 .coverage*
 
-# Node / Quartz
-site/node_modules/
-site/public/
+#
+
 
 # Datos / Salidas
 project/data/*.csv
